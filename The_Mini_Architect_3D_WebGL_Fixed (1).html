@@ -1,0 +1,1436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SPACE EXPLORER 4.0 - 3D Shape Lab Year 4 Mathematics</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Three.js Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- OrbitControls -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Canvas Confetti -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            fredoka: ['Fredoka', 'sans-serif'],
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#1e1b4b',
+              950: '#0f0d2a',
+            },
+            accent: {
+              pink: '#ec4899',
+              amber: '#f59e0b',
+              emerald: '#10b981',
+              cyan: '#06b6d4',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Animated space background */
+    body {
+      background:
+        radial-gradient(
+          circle at 15% 20%,
+          rgba(59, 130, 246, 0.28),
+          transparent 35%
+        ),
+        radial-gradient(
+          circle at 85% 75%,
+          rgba(139, 92, 246, 0.25),
+          transparent 38%
+        ),
+        linear-gradient(
+          135deg,
+          #080f2b,
+          #151044,
+          #0b1e42
+        );
+      background-size: 160% 160%;
+      animation: spaceGradient 16s ease-in-out infinite alternate;
+      min-height: 100vh;
+      overflow-x: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #f8fafc;
+      user-select: none;
+    }
+
+    @keyframes spaceGradient {
+      from { background-position: 0% 20%; }
+      to { background-position: 100% 80%; }
+    }
+
+    .font-heading {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    /* Mission cards */
+    .mission-card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+      transition: transform 250ms ease, border-color 250ms ease, box-shadow 250ms ease;
+    }
+
+    .mission-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(125, 211, 252, 0.8);
+      box-shadow: 0 18px 42px rgba(59, 130, 246, 0.3);
+    }
+
+    .mission-card.active-focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+      animation: focusPulse 2s infinite alternate;
+    }
+
+    @keyframes focusPulse {
+      0% { border-color: rgba(245, 158, 11, 0.6); }
+      100% { border-color: rgba(245, 158, 11, 1); }
+    }
+
+    /* Floating geometry decorations */
+    .floating-shape {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0.24;
+      animation: floatShape 7s ease-in-out infinite;
+    }
+
+    .floating-shape:nth-child(even) {
+      animation-delay: -3.5s;
+    }
+
+    @keyframes floatShape {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-16px) rotate(8deg); }
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .glass-card-light {
+      background: rgba(255, 255, 255, 0.95);
+      color: #0f172a;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(224, 231, 255, 0.8);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4f46e5;
+      border-radius: 4px;
+    }
+
+    /* Range input styling */
+    input[type=range] {
+      -webkit-appearance: none;
+      background: transparent;
+    }
+    input[type=range]:focus {
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 12px;
+      cursor: pointer;
+      background: #334155;
+      border-radius: 8px;
+      border: 1px solid #475569;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      height: 26px;
+      width: 26px;
+      border-radius: 50%;
+      background: #6366f1;
+      cursor: pointer;
+      -webkit-appearance: none;
+      margin-top: -7px;
+      box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.5), 0 0 0 3px #ffffff;
+      transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #4f46e5;
+    }
+
+    /* Accessible reduced-motion mode */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col relative overflow-x-hidden">
+
+  <!-- BACKGROUND FLOATING SHAPES -->
+  <div class="floating-shape top-12 left-10 text-cyan-400 text-6xl">
+    <i class="fa-solid fa-cube"></i>
+  </div>
+  <div class="floating-shape top-1/3 right-12 text-purple-400 text-5xl">
+    <i class="fa-solid fa-draw-polygon"></i>
+  </div>
+  <div class="floating-shape bottom-20 left-1/4 text-indigo-400 text-6xl">
+    <i class="fa-solid fa-cubes"></i>
+  </div>
+  <div class="floating-shape bottom-1/3 right-1/3 text-pink-400 text-4xl">
+    <i class="fa-solid fa-vector-square"></i>
+  </div>
+
+  <!-- TOP APP HEADER -->
+  <header class="bg-slate-900/80 backdrop-blur-md text-white border-b border-white/10 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-gradient-to-tr from-brand-600 to-cyan-400 p-2.5 rounded-2xl shadow-lg">
+          <i class="fa-solid fa-cube text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl sm:text-2xl font-heading font-bold tracking-wide flex items-center gap-2">
+            3D SHAPE LAB
+            <span class="text-[10px] font-sans font-extrabold px-2 py-0.5 rounded-full bg-amber-400 text-slate-900 uppercase tracking-wider">Year 4 Math</span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Space (Ruang) • Perimeter, Area & Volume Explorations</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3">
+        <button onclick="resetCurrentModule()" class="px-3.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-xs sm:text-sm font-semibold transition border border-white/15 flex items-center gap-1.5">
+          <i class="fa-solid fa-rotate-left text-cyan-400"></i> Reset Module
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MODULE NAVIGATION TABS -->
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 pt-6 z-20 relative">
+    <div class="glass-panel p-2 rounded-2xl border border-white/15 flex flex-wrap sm:flex-nowrap gap-2">
+      <button id="tab-perimeter" onclick="switchModule('perimeter')" class="flex-1 py-3 px-4 rounded-xl text-sm font-heading font-bold flex items-center justify-center gap-2 transition bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-lg border border-indigo-400/30">
+        <i class="fa-solid fa-draw-polygon text-cyan-300"></i> 1. Perimeter Explorer
+      </button>
+      <button id="tab-area" onclick="switchModule('area')" class="flex-1 py-3 px-4 rounded-xl text-sm font-heading font-bold flex items-center justify-center gap-2 transition text-slate-300 hover:text-white hover:bg-white/5">
+        <i class="fa-solid fa-vector-square text-emerald-400"></i> 2. Area Explorer
+      </button>
+      <button id="tab-volume" onclick="switchModule('volume')" class="flex-1 py-3 px-4 rounded-xl text-sm font-heading font-bold flex items-center justify-center gap-2 transition text-slate-300 hover:text-white hover:bg-white/5">
+        <i class="fa-solid fa-cubes text-purple-400"></i> 3. Volume Explorer
+      </button>
+    </div>
+  </nav>
+
+  <!-- MAIN DYNAMIC CONTENT CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6 z-10 relative">
+
+    <!-- MODULE 1: PERIMETER EXPLORER -->
+    <div id="view-perimeter" class="space-y-6">
+      <div class="glass-panel p-5 rounded-3xl border border-white/15 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-heading font-bold text-white flex items-center gap-2">
+            📏 Polygon Perimeter Laboratory
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            Explore 2D shapes up to 8 sides. Adjust side lengths to calculate the total boundary distance around polygons.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-semibold text-slate-300">
+          <span class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-white/10">
+            <i class="fa-solid fa-ruler-combined text-cyan-400"></i> CS 6.3.1 Perimeter of Polygons
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Controls & Shape Selector -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="glass-card-light rounded-3xl p-5 shadow-lg space-y-5 border border-indigo-100">
+            <h3 class="font-heading text-lg text-slate-900 font-bold flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-shapes text-brand-600"></i> Select Polygon Type
+            </h3>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2" id="polygon-selector-grid">
+              <!-- Rendered via JS: Triangle, Square, Rectangle, Pentagon, Hexagon, Heptagon, Octagon -->
+            </div>
+
+            <div class="space-y-4 pt-2 border-t border-slate-200" id="perimeter-controls">
+              <!-- Dynamic slider controls rendered via JS depending on polygon choice -->
+            </div>
+          </div>
+
+          <!-- Mathematical Results Panel -->
+          <div class="glass-card-light rounded-3xl p-5 shadow-lg space-y-4 border border-indigo-100">
+            <h3 class="font-heading text-lg text-slate-900 font-bold flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-calculator text-emerald-600"></i> Perimeter Calculation
+            </h3>
+
+            <div class="bg-blue-50 p-4 rounded-2xl border border-blue-200 flex items-center justify-between">
+              <div>
+                <span class="text-xs font-bold text-blue-700 block">Total Boundary Perimeter</span>
+                <span class="text-2xl font-heading text-blue-900 font-bold" id="peri-total-val">12 cm</span>
+              </div>
+              <span class="bg-blue-600 text-white text-xs px-3 py-1 rounded-full font-bold" id="peri-side-count-badge">3 Sides</span>
+            </div>
+
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs sm:text-sm space-y-2 text-slate-800">
+              <div class="flex items-center gap-2 font-bold text-amber-900">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i> Step-by-Step Formula:
+              </div>
+              <div class="font-mono bg-white p-3 rounded-xl border border-amber-200 leading-relaxed" id="peri-formula-step">
+                Perimeter = 4 + 4 + 4 = 12 cm
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SVG Visualiser -->
+        <div class="lg:col-span-7 space-y-6 flex flex-col">
+          <div class="glass-panel rounded-3xl p-5 shadow-xl border border-white/15 flex-grow flex flex-col relative overflow-hidden min-h-[420px]">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+              <h3 class="font-heading text-lg text-white font-bold flex items-center gap-2">
+                <i class="fa-solid fa-draw-polygon text-cyan-400"></i> Interactive 2D Polygon Display
+              </h3>
+              <span class="text-xs bg-slate-800 text-cyan-300 px-3 py-1 rounded-full font-semibold border border-white/10" id="peri-shape-title">
+                Regular Triangle
+              </span>
+            </div>
+
+            <div class="w-full flex-grow rounded-2xl bg-slate-950 relative mt-3 border border-white/10 flex items-center justify-center p-4">
+              <svg id="peri-svg" viewBox="0 0 500 400" class="w-full h-full max-h-[380px]"></svg>
+            </div>
+
+            <div class="mt-3 bg-slate-900/80 p-3.5 rounded-2xl border border-white/10 flex items-center justify-between text-xs text-slate-300">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-cyan-400 animate-pulse"></span>
+                <span>Distance around the outer edge</span>
+              </div>
+              <span class="font-bold text-cyan-300" id="peri-linear-unit-note">Measured in linear units (cm)</span>
+            </div>
+          </div>
+
+          <div class="glass-panel rounded-3xl p-5 border border-white/15 bg-gradient-to-r from-slate-900/90 to-indigo-950/90 space-y-2">
+            <h4 class="font-heading text-base text-cyan-300 font-bold flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap"></i> Perimeter Concept Note
+            </h4>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <b>Perimeter</b> is the total continuous distance around the outside edge of a 2D geometric shape. Calculate it by adding all individual side lengths together, or by multiplying equal side lengths in regular polygons!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 2: AREA EXPLORER -->
+    <div id="view-area" class="space-y-6 hidden">
+      <div class="glass-panel p-5 rounded-3xl border border-white/15 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-heading font-bold text-white flex items-center gap-2">
+            🔲 Surface Area Laboratory & Grid Visualiser
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            Explore squares, rectangles, right-angled triangles, and isosceles triangles using unit square grid overlays and standard formulae.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-semibold text-slate-300">
+          <span class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-white/10">
+            <i class="fa-solid fa-border-all text-emerald-400"></i> CS 6.3.2 Area of 2D Shapes
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Area Controls -->
+        <div class="lg:col-span-5 space-y-6">
+          <div class="glass-card-light rounded-3xl p-5 shadow-lg space-y-5 border border-indigo-100">
+            <h3 class="font-heading text-lg text-slate-900 font-bold flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-vector-square text-emerald-600"></i> Select 2D Shape
+            </h3>
+
+            <div class="grid grid-cols-2 gap-2" id="area-shape-selector">
+              <button onclick="setAreaShape('square')" id="area-btn-square" class="p-3 rounded-2xl border text-xs font-bold transition flex items-center gap-2 bg-emerald-600 text-white border-emerald-500 shadow-md">
+                <i class="fa-solid fa-square text-base"></i> Square
+              </button>
+              <button onclick="setAreaShape('rectangle')" id="area-btn-rectangle" class="p-3 rounded-2xl border text-xs font-bold transition flex items-center gap-2 bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200">
+                <i class="fa-solid fa-rectangle-ad text-base"></i> Rectangle
+              </button>
+              <button onclick="setAreaShape('right_triangle')" id="area-btn-right_triangle" class="p-3 rounded-2xl border text-xs font-bold transition flex items-center gap-2 bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200">
+                <i class="fa-solid fa-play text-base rotate-90"></i> Right-Angled △
+              </button>
+              <button onclick="setAreaShape('iso_triangle')" id="area-btn-iso_triangle" class="p-3 rounded-2xl border text-xs font-bold transition flex items-center gap-2 bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200">
+                <i class="fa-solid fa-triangle-exclamation text-base"></i> Isosceles △
+              </button>
+            </div>
+
+            <div class="space-y-4 pt-2 border-t border-slate-200" id="area-dimension-sliders">
+              <!-- Sliders injected dynamically -->
+            </div>
+          </div>
+
+          <!-- Area Math Calculations -->
+          <div class="glass-card-light rounded-3xl p-5 shadow-lg space-y-4 border border-indigo-100">
+            <h3 class="font-heading text-lg text-slate-900 font-bold flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-calculator text-emerald-600"></i> Area Formula & Grid Count
+            </h3>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-emerald-50 p-3.5 rounded-2xl border border-emerald-200">
+                <span class="text-xs font-bold text-emerald-700 block mb-1">Total Surface Area</span>
+                <div class="text-xl font-heading text-emerald-900 font-bold" id="area-total-val">25 cm²</div>
+              </div>
+
+              <div class="bg-indigo-50 p-3.5 rounded-2xl border border-indigo-200">
+                <span class="text-xs font-bold text-indigo-700 block mb-1">Unit Grid Squares</span>
+                <div class="text-xl font-heading text-indigo-900 font-bold" id="area-grid-count">25 squares</div>
+              </div>
+            </div>
+
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs sm:text-sm space-y-2 text-slate-800">
+              <div class="flex items-center gap-2 font-bold text-amber-900">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i> Step-by-Step Calculation:
+              </div>
+              <div class="font-mono bg-white p-3 rounded-xl border border-amber-200 leading-relaxed" id="area-formula-step">
+                Area = 5 × 5 = 25 cm²
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SVG Grid Display -->
+        <div class="lg:col-span-7 space-y-6 flex flex-col">
+          <div class="glass-panel rounded-3xl p-5 shadow-xl border border-white/15 flex-grow flex flex-col relative overflow-hidden min-h-[420px]">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+              <h3 class="font-heading text-lg text-white font-bold flex items-center gap-2">
+                <i class="fa-solid fa-border-all text-emerald-400"></i> Interactive Unit Grid Visualiser
+              </h3>
+              <span class="text-xs bg-slate-800 text-emerald-300 px-3 py-1 rounded-full font-semibold border border-white/10" id="area-shape-title">
+                Square Grid Overlay
+              </span>
+            </div>
+
+            <div class="w-full flex-grow rounded-2xl bg-slate-950 relative mt-3 border border-white/10 flex items-center justify-center p-4">
+              <svg id="area-svg" viewBox="0 0 500 400" class="w-full h-full max-h-[380px]"></svg>
+            </div>
+
+            <div class="mt-3 bg-slate-900/80 p-3.5 rounded-2xl border border-white/10 flex items-center justify-between text-xs text-slate-300">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-sm bg-emerald-400"></span>
+                <span>Highlighted square units inside shape</span>
+              </div>
+              <span class="font-bold text-emerald-300">Measured in square units (cm²)</span>
+            </div>
+          </div>
+
+          <div class="glass-panel rounded-3xl p-5 border border-white/15 bg-gradient-to-r from-slate-900/90 to-indigo-950/90 space-y-2">
+            <h4 class="font-heading text-base text-emerald-300 font-bold flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap"></i> Area Concept Note
+            </h4>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed" id="area-concept-note">
+              <b>Area</b> is the amount of 2D surface covered by a flat shape. Notice how a right-angled triangle occupies exactly <b>half (½)</b> of a bounding rectangle with identical base and perpendicular height!
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODULE 3: VOLUME EXPLORER (Existing Lab View) -->
+    <div id="view-volume" class="space-y-6 hidden">
+      
+      <!-- Top Title Card -->
+      <div class="glass-panel p-5 rounded-3xl border border-white/15 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 class="text-2xl font-heading font-bold text-white flex items-center gap-2">
+            🧪 3D Cube & Cuboid Volume Laboratory
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-300 mt-1">
+            Manipulate dimensions, separate unit layers, and observe how Base Area creates 3D Volume in real time.
+          </p>
+        </div>
+        <div class="flex items-center gap-2 text-xs font-semibold text-slate-300">
+          <span class="flex items-center gap-1.5 bg-slate-900 px-3 py-1.5 rounded-xl border border-white/10">
+            <i class="fa-solid fa-cubes text-purple-400"></i> CS 6.4.1 Volume of Solids
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Dual Grid Layout for Lab -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- LEFT COLUMN: CONTROLS & CALCULATIONS (5 Cols) -->
+        <div class="lg:col-span-5 space-y-6">
+          
+          <!-- Controls Panel -->
+          <div class="glass-card-light rounded-3xl p-5 shadow-lg space-y-5 border border-indigo-100">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 class="font-heading text-lg text-slate-900 font-bold flex items-center gap-2">
+                <i class="fa-solid fa-sliders text-brand-600"></i> Solid Selection & Controls
+              </h3>
+              <div class="flex bg-slate-200 p-1 rounded-xl text-xs font-bold">
+                <button id="vol-mode-cuboid" onclick="setSolidType('cuboid')" class="px-2.5 py-1 rounded-lg bg-white text-brand-700 shadow-sm">Cuboid</button>
+                <button id="vol-mode-cube" onclick="setSolidType('cube')" class="px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900">Cube</button>
+              </div>
+            </div>
+
+            <!-- Slider 1: Length / Side -->
+            <div class="space-y-2 bg-blue-50/80 p-3.5 rounded-2xl border border-blue-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span class="flex items-center gap-2" id="label-len-title">
+                  <span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span>
+                  Length (Panjang)
+                </span>
+                <span class="bg-blue-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono shadow-sm" id="pVal">4</span>
+              </div>
+              <input id="p" type="range" min="1" max="6" value="4" class="w-full">
+            </div>
+
+            <!-- Slider 2: Width -->
+            <div id="container-width-slider" class="space-y-2 bg-purple-50/80 p-3.5 rounded-2xl border border-purple-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-purple-500 inline-block"></span>
+                  Width (Lebar)
+                </span>
+                <span class="bg-purple-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono shadow-sm" id="lVal">3</span>
+              </div>
+              <input id="l" type="range" min="1" max="6" value="3" class="w-full">
+            </div>
+
+            <!-- Slider 3: Height -->
+            <div id="container-height-slider" class="space-y-2 bg-pink-50/80 p-3.5 rounded-2xl border border-pink-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-pink-500 inline-block"></span>
+                  Height (Tinggi)
+                </span>
+                <span class="bg-pink-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono shadow-sm" id="tVal">2</span>
+              </div>
+              <input id="t" type="range" min="1" max="6" value="2" class="w-full">
+            </div>
+
+            <!-- Visual Options Toggle -->
+            <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-600">
+              <span class="font-semibold"><i class="fa-solid fa-eye text-brand-600"></i> Render Mode:</span>
+              <div class="flex bg-slate-200 p-1 rounded-xl">
+                <button id="mode-3d-btn" onclick="setRenderMode('3d')" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-brand-700 shadow-sm">3D WebGL</button>
+                <button id="mode-2d-btn" onclick="setRenderMode('2d')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900">Isometric SVG</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mathematical Results Cards -->
+          <div class="glass-card-light rounded-3xl p-5 shadow-lg space-y-4 border border-indigo-100">
+            <h3 class="font-heading text-lg text-slate-900 font-bold flex items-center gap-2 border-b border-slate-200 pb-2">
+              <i class="fa-solid fa-square-root-variable text-emerald-600"></i> Volume Formula & Layers
+            </h3>
+
+            <!-- Metric Cards Grid -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-blue-50 p-3.5 rounded-2xl border border-blue-200">
+                <span class="text-xs font-bold text-blue-700 block mb-1">Base Area (Luas Tapak)</span>
+                <div class="text-xl font-heading text-blue-900 font-bold" id="area">12 cm²</div>
+                <span class="text-[11px] text-blue-600 font-medium">Length × Width</span>
+              </div>
+
+              <div class="bg-purple-50 p-3.5 rounded-2xl border border-purple-200">
+                <span class="text-xs font-bold text-purple-700 block mb-1">Total Volume (Isi Padu)</span>
+                <div class="text-xl font-heading text-purple-900 font-bold" id="volume">24 cm³</div>
+                <span class="text-[11px] text-purple-600 font-medium">Base Area × Height</span>
+              </div>
+            </div>
+
+            <!-- Formulas Box -->
+            <div class="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-xs sm:text-sm space-y-2 text-slate-800">
+              <div class="flex items-center gap-2 font-bold text-amber-900">
+                <i class="fa-solid fa-lightbulb text-amber-500"></i> Mathematical Formulas:
+              </div>
+              <div class="font-mono bg-white p-2.5 rounded-xl border border-amber-200 space-y-1">
+                <div><b>Base Area</b> = <span id="formula-length-val">4</span> × <span id="formula-width-val">3</span> = <b class="text-blue-600" id="areaFormula">12 cm²</b></div>
+                <div><b>Volume</b> = <span id="formula-area-val">12</span> × <span id="formula-height-val">2</span> = <b class="text-purple-600" id="volumeFormula">24 cm³</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: 3D/SVG VISUALISER (7 Cols) -->
+        <div class="lg:col-span-7 space-y-6 flex flex-col">
+          
+          <div class="glass-panel rounded-3xl p-4 shadow-xl border border-white/15 flex-grow flex flex-col relative overflow-hidden min-h-[420px]">
+            <div class="flex items-center justify-between pb-3 px-1 border-b border-white/10">
+              <h3 class="font-heading text-lg text-white font-bold flex items-center gap-2">
+                <i class="fa-solid fa-cube text-cyan-400"></i> 3D Solid Visualiser
+              </h3>
+              <span class="text-xs bg-slate-800 text-cyan-300 px-3 py-1 rounded-full font-semibold border border-white/10">
+                Interactive Viewport
+              </span>
+            </div>
+
+            <!-- 3D Three.js Container -->
+            <div id="three-container" class="w-full flex-grow rounded-2xl bg-slate-950 relative mt-3 shadow-inner overflow-hidden cursor-grab active:cursor-grabbing">
+              <!-- Overlay Controls inside Viewport -->
+              <div class="absolute top-3 left-3 z-10 flex flex-wrap gap-2">
+                <button onclick="toggleExplodedView()" id="explode-btn" class="bg-slate-900/90 hover:bg-slate-800 text-cyan-300 text-xs px-3 py-1.5 rounded-xl font-bold shadow-md border border-cyan-400/30 transition backdrop-blur-sm flex items-center gap-1.5">
+                  <i class="fa-solid fa-layer-group text-purple-400"></i> <span id="explode-text">Separate Layers</span>
+                </button>
+                <button onclick="toggleWireframe()" id="wireframe-btn" class="bg-slate-900/90 hover:bg-slate-800 text-cyan-300 text-xs px-3 py-1.5 rounded-xl font-bold shadow-md border border-cyan-400/30 transition backdrop-blur-sm flex items-center gap-1.5">
+                  <i class="fa-solid fa-border-all text-blue-400"></i> Toggle Mesh
+                </button>
+              </div>
+
+              <div class="absolute bottom-3 right-3 z-10 text-[11px] text-slate-400 bg-black/50 backdrop-blur-md px-3 py-1 rounded-xl pointer-events-none">
+                <i class="fa-solid fa-arrows-rotate"></i> Drag to Rotate • Scroll to Zoom
+              </div>
+            </div>
+
+            <!-- Isometric SVG Container (Fallback Mode) -->
+            <div id="svg-container" class="w-full flex-grow rounded-2xl bg-slate-950 relative mt-3 border border-white/10 hidden flex items-center justify-center p-2">
+              <svg id="shape" viewBox="0 0 600 500" class="w-full h-full max-h-[420px]" role="img" aria-label="Isometric cuboid constructed from unit cubes"></svg>
+            </div>
+
+            <!-- Shape Badge Footer -->
+            <div class="mt-3 bg-slate-900/80 p-3 rounded-2xl border border-white/10 flex items-center justify-between text-xs sm:text-sm text-slate-300">
+              <div class="flex items-center gap-2 font-medium">
+                <span class="w-3 h-3 rounded-sm bg-cyan-400 inline-block"></span>
+                Solid Type: <b id="shape-name-badge" class="text-white">Cuboid</b>
+              </div>
+              <div>
+                Total Unit Cubes: <b class="text-cyan-300 font-mono text-base" id="cube-count-badge">24</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conceptual Pedagogical Explanation Card -->
+          <div class="glass-panel rounded-3xl p-5 border border-white/15 bg-gradient-to-r from-slate-900/90 to-indigo-950/90 space-y-2">
+            <h4 class="font-heading text-base text-cyan-300 font-bold flex items-center gap-2">
+              <i class="fa-solid fa-graduation-cap"></i> Pedagogical Reasoning
+            </h4>
+            <div class="text-xs sm:text-sm text-slate-300 leading-relaxed" id="explanation">
+              Your solid has 2 height layers. Each layer contains 12 unit cubes. Total volume is 24 cubic units.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-950/80 backdrop-blur-md text-slate-400 text-xs py-6 mt-12 border-t border-white/10 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 text-center space-y-1">
+      <p class="font-semibold text-slate-300">3D SHAPE LAB — YEAR 4 MATHEMATICS</p>
+      <p class="text-slate-500">Content Standards 6.3 (Perimeter & Area) & 6.4 (Volume of Solids) • Designed for Year 4 Primary Pupils</p>
+    </div>
+  </footer>
+
+  <!-- JAVASCRIPT APP STATE & LOGIC -->
+  <script>
+    // --- GLOBAL APP STATE ---
+    const state = {
+      activeModule: 'perimeter', // 'perimeter', 'area', 'volume'
+      
+      // Module 1: Perimeter State
+      perimeter: {
+        selectedShape: 'triangle', // triangle, square, rectangle, pentagon, hexagon, heptagon, octagon
+        sideLength: 4,
+        rectWidth: 3,
+        polygonSides: {
+          triangle: 3, square: 4, rectangle: 4, pentagon: 5, hexagon: 6, heptagon: 7, octagon: 8
+        }
+      },
+
+      // Module 2: Area State
+      area: {
+        selectedShape: 'square', // square, rectangle, right_triangle, iso_triangle
+        side: 5,
+        length: 6,
+        width: 4,
+        base: 6,
+        height: 4
+      },
+
+      // Module 3: Volume State
+      volume: {
+        solidType: 'cuboid', // 'cuboid' or 'cube'
+        length: 4,
+        width: 3,
+        height: 2,
+        renderMode: '3d', // '3d' or '2d'
+        exploded: false,
+        wireframe: false
+      }
+    };
+
+    // --- NAVIGATION CONTROLLER ---
+    function switchModule(moduleName) {
+      state.activeModule = moduleName;
+      ['perimeter', 'area', 'volume'].forEach(m => {
+        const view = document.getElementById(`view-${m}`);
+        const tab = document.getElementById(`tab-${m}`);
+        if (m === moduleName) {
+          if (view) view.classList.remove('hidden');
+          if (tab) {
+            tab.className = "flex-1 py-3 px-4 rounded-xl text-sm font-heading font-bold flex items-center justify-center gap-2 transition bg-gradient-to-r from-brand-600 to-indigo-600 text-white shadow-lg border border-indigo-400/30";
+          }
+        } else {
+          if (view) view.classList.add('hidden');
+          if (tab) {
+            tab.className = "flex-1 py-3 px-4 rounded-xl text-sm font-heading font-bold flex items-center justify-center gap-2 transition text-slate-300 hover:text-white hover:bg-white/5";
+          }
+        }
+      });
+
+      if (moduleName === 'perimeter') updatePerimeterModule();
+      else if (moduleName === 'area') updateAreaModule();
+      else if (moduleName === 'volume') {
+        // Ensure DOM layout is painted before initializing/resizing Three.js
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            if (!isThreeInitialized) {
+              initThree();
+            } else {
+              onWindowResize();
+            }
+            updateCalculations();
+          }, 100);
+        });
+      }
+    }
+
+    function resetCurrentModule() {
+      if (state.activeModule === 'perimeter') {
+        state.perimeter.selectedShape = 'triangle';
+        state.perimeter.sideLength = 4;
+        state.perimeter.rectWidth = 3;
+        updatePerimeterModule();
+      } else if (state.activeModule === 'area') {
+        state.area.selectedShape = 'square';
+        state.area.side = 5;
+        state.area.length = 6;
+        state.area.width = 4;
+        state.area.base = 6;
+        state.area.height = 4;
+        updateAreaModule();
+      } else if (state.activeModule === 'volume') {
+        resetShape();
+      }
+    }
+
+    // =========================================================================
+    // MODULE 1: PERIMETER LOGIC & SVG RENDERING
+    // =========================================================================
+    const polygonTypes = [
+      { id: 'triangle', name: 'Triangle', sides: 3, icon: 'fa-play rotate-90' },
+      { id: 'square', name: 'Square', sides: 4, icon: 'fa-square' },
+      { id: 'rectangle', name: 'Rectangle', sides: 4, icon: 'fa-rectangle-ad' },
+      { id: 'pentagon', name: 'Pentagon', sides: 5, icon: 'fa-draw-polygon' },
+      { id: 'hexagon', name: 'Hexagon', sides: 6, icon: 'fa-hexagon' },
+      { id: 'heptagon', name: 'Heptagon', sides: 7, icon: 'fa-certificate' },
+      { id: 'octagon', name: 'Octagon', sides: 8, icon: 'fa-stop' }
+    ];
+
+    function renderPolygonSelectorButtons() {
+      const grid = document.getElementById('polygon-selector-grid');
+      if (!grid) return;
+      grid.innerHTML = polygonTypes.map(p => {
+        const isSel = state.perimeter.selectedShape === p.id;
+        return `
+          <button onclick="setPerimeterShape('${p.id}')" class="p-2.5 rounded-2xl border text-xs font-bold transition flex items-center justify-center gap-1.5 ${isSel ? 'bg-brand-600 text-white border-brand-500 shadow-md' : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'}">
+            <i class="fa-solid ${p.icon}"></i> ${p.name}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function setPerimeterShape(shapeId) {
+      state.perimeter.selectedShape = shapeId;
+      renderPolygonSelectorButtons();
+      updatePerimeterModule();
+    }
+
+    function updatePerimeterModule() {
+      renderPolygonSelectorButtons();
+      const pState = state.perimeter;
+      const shape = pState.selectedShape;
+      const sides = pState.polygonSides[shape];
+
+      const controlsContainer = document.getElementById('perimeter-controls');
+      if (controlsContainer) {
+        if (shape === 'rectangle') {
+          controlsContainer.innerHTML = `
+            <div class="space-y-2 bg-blue-50/80 p-3.5 rounded-2xl border border-blue-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Length (l)</span>
+                <span class="bg-blue-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${pState.sideLength} cm</span>
+              </div>
+              <input type="range" min="1" max="10" value="${pState.sideLength}" oninput="state.perimeter.sideLength=+this.value; updatePerimeterModule();" class="w-full">
+            </div>
+            <div class="space-y-2 bg-purple-50/80 p-3.5 rounded-2xl border border-purple-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Width (w)</span>
+                <span class="bg-purple-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${pState.rectWidth} cm</span>
+              </div>
+              <input type="range" min="1" max="10" value="${pState.rectWidth}" oninput="state.perimeter.rectWidth=+this.value; updatePerimeterModule();" class="w-full">
+            </div>
+          `;
+        } else {
+          controlsContainer.innerHTML = `
+            <div class="space-y-2 bg-blue-50/80 p-3.5 rounded-2xl border border-blue-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Side Length (s)</span>
+                <span class="bg-blue-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${pState.sideLength} cm</span>
+              </div>
+              <input type="range" min="1" max="10" value="${pState.sideLength}" oninput="state.perimeter.sideLength=+this.value; updatePerimeterModule();" class="w-full">
+            </div>
+          `;
+        }
+      }
+
+      // Calculations
+      let totalPeri = 0;
+      let formulaText = '';
+      if (shape === 'rectangle') {
+        totalPeri = 2 * (pState.sideLength + pState.rectWidth);
+        formulaText = `Perimeter = 2 × (Length + Width)<br>= 2 × (${pState.sideLength} + ${pState.rectWidth})<br>= 2 × ${pState.sideLength + pState.rectWidth} = <b>${totalPeri} cm</b>`;
+      } else {
+        totalPeri = sides * pState.sideLength;
+        const sumArray = Array(sides).fill(`${pState.sideLength} cm`).join(' + ');
+        formulaText = `Perimeter = Number of sides × Side length<br>= ${sides} × ${pState.sideLength} cm<br>= ${sumArray} = <b>${totalPeri} cm</b>`;
+      }
+
+      document.getElementById('peri-total-val').textContent = `${totalPeri} cm`;
+      document.getElementById('peri-side-count-badge').textContent = `${sides} Sides`;
+      document.getElementById('peri-formula-step').innerHTML = formulaText;
+      document.getElementById('peri-shape-title').textContent = `${shape.charAt(0).toUpperCase() + shape.slice(1)} (${sides} Sides)`;
+
+      drawPerimeterSVG();
+    }
+
+    function drawPerimeterSVG() {
+      const svg = document.getElementById('peri-svg');
+      if (!svg) return;
+      const pState = state.perimeter;
+      const shape = pState.selectedShape;
+      const sides = pState.polygonSides[shape];
+      const cx = 250, cy = 200, radius = 130;
+
+      let points = [];
+      if (shape === 'rectangle') {
+        const l = pState.sideLength * 18;
+        const w = pState.rectWidth * 18;
+        points = [
+          [cx - l/2, cy - w/2],
+          [cx + l/2, cy - w/2],
+          [cx + l/2, cy + w/2],
+          [cx - l/2, cy + w/2]
+        ];
+      } else {
+        for (let i = 0; i < sides; i++) {
+          const angle = (i * 2 * Math.PI / sides) - Math.PI / 2;
+          points.push([cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)]);
+        }
+      }
+
+      const pointsString = points.map(p => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+      
+      let verticesNodes = points.map((p, idx) => `
+        <circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#38bdf8" stroke="#ffffff" stroke-width="2"/>
+      `).join('');
+
+      let edgeLabels = '';
+      for (let i = 0; i < points.length; i++) {
+        const p1 = points[i];
+        const p2 = points[(i + 1) % points.length];
+        const mx = (p1[0] + p2[0]) / 2;
+        const my = (p1[1] + p2[1]) / 2;
+        const labelVal = (shape === 'rectangle' && (i % 2 !== 0)) ? `${pState.rectWidth} cm` : `${pState.sideLength} cm`;
+
+        edgeLabels += `
+          <g>
+            <rect x="${mx - 22}" y="${my - 12}" width="44" height="24" rx="6" fill="#0f172a" opacity="0.85" stroke="#38bdf8" stroke-width="1"/>
+            <text x="${mx}" y="${my + 4}" font-size="11" font-weight="bold" fill="#7dd3fc" text-anchor="middle">${labelVal}</text>
+          </g>
+        `;
+      }
+
+      svg.innerHTML = `
+        <defs>
+          <linearGradient id="polyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#06b6d4" stop-opacity="0.3"/>
+          </linearGradient>
+        </defs>
+        <polygon points="${pointsString}" fill="url(#polyGrad)" stroke="#38bdf8" stroke-width="4" stroke-dasharray="8 4" stroke-linejoin="round"/>
+        ${verticesNodes}
+        ${edgeLabels}
+      `;
+    }
+
+    // =========================================================================
+    // MODULE 2: AREA LOGIC & GRID RENDERING
+    // =========================================================================
+    function setAreaShape(shapeId) {
+      state.area.selectedShape = shapeId;
+      ['square', 'rectangle', 'right_triangle', 'iso_triangle'].forEach(s => {
+        const btn = document.getElementById(`area-btn-${s}`);
+        if (btn) {
+          if (s === shapeId) btn.className = "p-3 rounded-2xl border text-xs font-bold transition flex items-center gap-2 bg-emerald-600 text-white border-emerald-500 shadow-md";
+          else btn.className = "p-3 rounded-2xl border text-xs font-bold transition flex items-center gap-2 bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200";
+        }
+      });
+      updateAreaModule();
+    }
+
+    function updateAreaModule() {
+      const aState = state.area;
+      const shape = aState.selectedShape;
+      const container = document.getElementById('area-dimension-sliders');
+
+      if (container) {
+        if (shape === 'square') {
+          container.innerHTML = `
+            <div class="space-y-2 bg-emerald-50/80 p-3.5 rounded-2xl border border-emerald-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Side Length (s)</span>
+                <span class="bg-emerald-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${aState.side} cm</span>
+              </div>
+              <input type="range" min="1" max="8" value="${aState.side}" oninput="state.area.side=+this.value; updateAreaModule();" class="w-full">
+            </div>
+          `;
+        } else if (shape === 'rectangle') {
+          container.innerHTML = `
+            <div class="space-y-2 bg-emerald-50/80 p-3.5 rounded-2xl border border-emerald-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Length (l)</span>
+                <span class="bg-emerald-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${aState.length} cm</span>
+              </div>
+              <input type="range" min="1" max="8" value="${aState.length}" oninput="state.area.length=+this.value; updateAreaModule();" class="w-full">
+            </div>
+            <div class="space-y-2 bg-teal-50/80 p-3.5 rounded-2xl border border-teal-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Width (w)</span>
+                <span class="bg-teal-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${aState.width} cm</span>
+              </div>
+              <input type="range" min="1" max="8" value="${aState.width}" oninput="state.area.width=+this.value; updateAreaModule();" class="w-full">
+            </div>
+          `;
+        } else {
+          // Triangles
+          container.innerHTML = `
+            <div class="space-y-2 bg-emerald-50/80 p-3.5 rounded-2xl border border-emerald-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Base (b)</span>
+                <span class="bg-emerald-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${aState.base} cm</span>
+              </div>
+              <input type="range" min="2" max="8" step="2" value="${aState.base}" oninput="state.area.base=+this.value; updateAreaModule();" class="w-full">
+            </div>
+            <div class="space-y-2 bg-teal-50/80 p-3.5 rounded-2xl border border-teal-200">
+              <div class="flex justify-between items-center text-sm font-bold text-slate-800">
+                <span>Height (h)</span>
+                <span class="bg-teal-600 text-white px-2.5 py-0.5 rounded-lg text-sm font-mono">${aState.height} cm</span>
+              </div>
+              <input type="range" min="1" max="8" value="${aState.height}" oninput="state.area.height=+this.value; updateAreaModule();" class="w-full">
+            </div>
+          `;
+        }
+      }
+
+      let totalArea = 0;
+      let gridCountStr = '';
+      let formulaText = '';
+      let shapeTitle = '';
+
+      if (shape === 'square') {
+        totalArea = aState.side * aState.side;
+        gridCountStr = `${totalArea} unit squares`;
+        formulaText = `Area = Side × Side<br>= ${aState.side} cm × ${aState.side} cm<br>= <b>${totalArea} cm²</b>`;
+        shapeTitle = `Square (${aState.side} × ${aState.side})`;
+      } else if (shape === 'rectangle') {
+        totalArea = aState.length * aState.width;
+        gridCountStr = `${totalArea} unit squares`;
+        formulaText = `Area = Length × Width<br>= ${aState.length} cm × ${aState.width} cm<br>= <b>${totalArea} cm²</b>`;
+        shapeTitle = `Rectangle (${aState.length} × ${aState.width})`;
+      } else if (shape === 'right_triangle') {
+        totalArea = 0.5 * aState.base * aState.height;
+        gridCountStr = `${totalArea} full squares (${aState.base * aState.height} / 2)`;
+        formulaText = `Area = ½ × Base × Height<br>= ½ × ${aState.base} cm × ${aState.height} cm<br>= ½ × ${aState.base * aState.height}<br>= <b>${totalArea} cm²</b>`;
+        shapeTitle = `Right-Angled Triangle (b=${aState.base}, h=${aState.height})`;
+      } else if (shape === 'iso_triangle') {
+        totalArea = 0.5 * aState.base * aState.height;
+        gridCountStr = `${totalArea} unit squares`;
+        formulaText = `Area = ½ × Base × Height<br>= ½ × ${aState.base} cm × ${aState.height} cm<br>= <b>${totalArea} cm²</b>`;
+        shapeTitle = `Isosceles Triangle (b=${aState.base}, h=${aState.height})`;
+      }
+
+      document.getElementById('area-total-val').textContent = `${totalArea} cm²`;
+      document.getElementById('area-grid-count').textContent = gridCountStr;
+      document.getElementById('area-formula-step').innerHTML = formulaText;
+      document.getElementById('area-shape-title').textContent = shapeTitle;
+
+      drawAreaSVG();
+    }
+
+    function drawAreaSVG() {
+      const svg = document.getElementById('area-svg');
+      if (!svg) return;
+      const aState = state.area;
+      const shape = aState.selectedShape;
+      const gridSize = 32;
+
+      let cols = 8, rows = 6;
+      let shapeW = 0, shapeH = 0;
+
+      if (shape === 'square') { shapeW = aState.side; shapeH = aState.side; }
+      else if (shape === 'rectangle') { shapeW = aState.length; shapeH = aState.width; }
+      else { shapeW = aState.base; shapeH = aState.height; }
+
+      const startX = (500 - cols * gridSize) / 2;
+      const startY = (400 - rows * gridSize) / 2;
+
+      let gridLines = '';
+      for (let c = 0; c <= cols; c++) {
+        const x = startX + c * gridSize;
+        gridLines += `<line x1="${x}" y1="${startY}" x2="${x}" y2="${startY + rows * gridSize}" stroke="#334155" stroke-width="1"/>`;
+      }
+      for (let r = 0; r <= rows; r++) {
+        const y = startY + r * gridSize;
+        gridLines += `<line x1="${startX}" y1="${y}" x2="${startX + cols * gridSize}" y2="${y}" stroke="#334155" stroke-width="1"/>`;
+      }
+
+      // Draw shape overlay
+      const offX = startX + 2 * gridSize;
+      const offY = startY + (rows - shapeH) * gridSize;
+
+      let shapePath = '';
+      let annotations = '';
+
+      if (shape === 'square' || shape === 'rectangle') {
+        shapePath = `
+          <rect x="${offX}" y="${offY}" width="${shapeW * gridSize}" height="${shapeH * gridSize}" fill="#10b981" fill-opacity="0.35" stroke="#34d399" stroke-width="3"/>
+        `;
+        annotations = `
+          <text x="${offX + (shapeW * gridSize)/2}" y="${offY - 8}" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">${shapeW} cm</text>
+          <text x="${offX - 12}" y="${offY + (shapeH * gridSize)/2}" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">${shapeH} cm</text>
+        `;
+      } else if (shape === 'right_triangle') {
+        const p1 = `${offX},${offY + shapeH * gridSize}`;
+        const p2 = `${offX + shapeW * gridSize},${offY + shapeH * gridSize}`;
+        const p3 = `${offX},${offY}`;
+        shapePath = `
+          <rect x="${offX}" y="${offY}" width="${shapeW * gridSize}" height="${shapeH * gridSize}" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <polygon points="${p1} ${p2} ${p3}" fill="#10b981" fill-opacity="0.4" stroke="#34d399" stroke-width="3"/>
+          <rect x="${offX}" y="${offY + shapeH * gridSize - 12}" width="12" height="12" fill="none" stroke="#34d399" stroke-width="2"/>
+        `;
+        annotations = `
+          <text x="${offX + (shapeW * gridSize)/2}" y="${offY + shapeH * gridSize + 20}" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">Base = ${shapeW} cm</text>
+          <text x="${offX - 16}" y="${offY + (shapeH * gridSize)/2}" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">h = ${shapeH} cm</text>
+        `;
+      } else if (shape === 'iso_triangle') {
+        const p1 = `${offX},${offY + shapeH * gridSize}`;
+        const p2 = `${offX + shapeW * gridSize},${offY + shapeH * gridSize}`;
+        const p3 = `${offX + (shapeW * gridSize)/2},${offY}`;
+        shapePath = `
+          <polygon points="${p1} ${p2} ${p3}" fill="#10b981" fill-opacity="0.4" stroke="#34d399" stroke-width="3"/>
+          <line x1="${offX + (shapeW * gridSize)/2}" y1="${offY}" x2="${offX + (shapeW * gridSize)/2}" y2="${offY + shapeH * gridSize}" stroke="#f59e0b" stroke-width="2" stroke-dasharray="4 4"/>
+        `;
+        annotations = `
+          <text x="${offX + (shapeW * gridSize)/2}" y="${offY + shapeH * gridSize + 20}" fill="#34d399" font-size="13" font-weight="bold" text-anchor="middle">Base = ${shapeW} cm</text>
+          <text x="${offX + (shapeW * gridSize)/2 + 25}" y="${offY + (shapeH * gridSize)/2}" fill="#f59e0b" font-size="12" font-weight="bold">h = ${shapeH} cm</text>
+        `;
+      }
+
+      svg.innerHTML = `
+        <rect width="500" height="400" fill="#090d1f" rx="16"/>
+        ${gridLines}
+        ${shapePath}
+        ${annotations}
+      `;
+    }
+
+    // =========================================================================
+    // MODULE 3: VOLUME LOGIC (Existing 3D Engine & Solid Selector)
+    // =========================================================================
+    function setSolidType(type) {
+      state.volume.solidType = type;
+      const btnCuboid = document.getElementById('vol-mode-cuboid');
+      const btnCube = document.getElementById('vol-mode-cube');
+      const containerW = document.getElementById('container-width-slider');
+      const containerH = document.getElementById('container-height-slider');
+      const labelLen = document.getElementById('label-len-title');
+
+      if (type === 'cube') {
+        if (btnCube) btnCube.className = "px-2.5 py-1 rounded-lg bg-white text-brand-700 shadow-sm";
+        if (btnCuboid) btnCuboid.className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900";
+        if (containerW) containerW.classList.add('hidden');
+        if (containerH) containerH.classList.add('hidden');
+        if (labelLen) labelLen.innerHTML = '<span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Cube Side Length (s)';
+        state.volume.length = state.volume.width = state.volume.height = +document.getElementById('p').value;
+      } else {
+        if (btnCuboid) btnCuboid.className = "px-2.5 py-1 rounded-lg bg-white text-brand-700 shadow-sm";
+        if (btnCube) btnCube.className = "px-2.5 py-1 rounded-lg text-slate-600 hover:text-slate-900";
+        if (containerW) containerW.classList.remove('hidden');
+        if (containerH) containerH.classList.remove('hidden');
+        if (labelLen) labelLen.innerHTML = '<span class="w-3 h-3 rounded-full bg-blue-500 inline-block"></span> Length (Panjang)';
+        state.volume.length = +document.getElementById('p').value;
+        state.volume.width = +document.getElementById('l').value;
+        state.volume.height = +document.getElementById('t').value;
+      }
+      updateCalculations();
+    }
+
+    // --- THREE.JS ENGINE SETUP ---
+    let scene, camera, renderer, controls, cubeGroup;
+    let isThreeInitialized = false;
+
+    function initThree() {
+      const container = document.getElementById('three-container');
+      if (!container || isThreeInitialized) return;
+
+      if (typeof THREE === 'undefined' || !THREE.WebGLRenderer || !THREE.OrbitControls) {
+        container.innerHTML = '<div class="absolute inset-0 flex items-center justify-center p-6 text-center text-amber-200 text-sm">3D WebGL could not load. Please check your internet connection and reload the page, or switch to Isometric SVG.</div>';
+        return;
+      }
+
+      // Force measurement fallback if offsetWidth is 0 during initial tab switch
+      const width = container.clientWidth || container.offsetWidth || 500;
+      const height = container.clientHeight || container.offsetHeight || 400;
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0a0f24);
+
+      camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.set(12, 10, 14);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+
+      const oldCanvas = container.querySelector('canvas');
+      if (oldCanvas) oldCanvas.remove();
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      dirLight.position.set(15, 25, 15);
+      dirLight.castShadow = true;
+      scene.add(dirLight);
+
+      const gridHelper = new THREE.GridHelper(20, 20, 0x6366f1, 0x1e293b);
+      gridHelper.position.y = -0.01;
+      scene.add(gridHelper);
+
+      cubeGroup = new THREE.Group();
+      scene.add(cubeGroup);
+
+      isThreeInitialized = true;
+      window.addEventListener('resize', onWindowResize);
+      
+      // Update scene with initial dimensions
+      update3DScene();
+      onWindowResize();
+      animate();
+    }
+
+    function onWindowResize() {
+      const container = document.getElementById('three-container');
+      if (!container || !renderer || !camera) return;
+      
+      const width = container.clientWidth || container.offsetWidth || 500;
+      const height = container.clientHeight || container.offsetHeight || 400;
+
+      if (width > 0 && height > 0) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+        renderer.setSize(width, height);
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (controls) controls.update();
+      if (renderer && scene && camera) {
+        renderer.render(scene, camera);
+      }
+    }
+
+    function update3DScene() {
+      if (!isThreeInitialized) {
+        initThree();
+        return;
+      }
+      if (!cubeGroup) return;
+
+      while(cubeGroup.children.length > 0){ 
+        const obj = cubeGroup.children[0];
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+          if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose());
+          else obj.material.dispose();
+        }
+        cubeGroup.remove(obj); 
+      }
+
+      const P = state.volume.length;
+      const L = state.volume.width;
+      const T = state.volume.height;
+
+      const offsetX = (P - 1) * 0.5;
+      const offsetZ = (L - 1) * 0.5;
+      const offsetY = 0.5;
+
+      const layerColors = [0x38bdf8, 0xa855f7, 0xec4899, 0x10b981, 0xf59e0b, 0x06b6d4];
+      const explodeOffset = state.volume.exploded ? 0.45 : 0;
+
+      for (let k = 0; k < T; k++) {
+        const layerColor = layerColors[k % layerColors.length];
+        for (let j = 0; j < L; j++) {
+          for (let i = 0; i < P; i++) {
+            const geom = new THREE.BoxGeometry(0.96, 0.96, 0.96);
+            let mat;
+            if (state.volume.wireframe) {
+              mat = new THREE.MeshBasicMaterial({ color: layerColor, wireframe: true });
+            } else {
+              mat = new THREE.MeshStandardMaterial({ color: layerColor, roughness: 0.3, metalness: 0.1 });
+            }
+
+            const mesh = new THREE.Mesh(geom, mat);
+            mesh.position.set(i - offsetX, offsetY + k * (1 + explodeOffset), j - offsetZ);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            cubeGroup.add(mesh);
+          }
+        }
+      }
+
+      if (controls) {
+        controls.target.set(0, (T * (1 + explodeOffset)) / 2, 0);
+      }
+    }
+
+    // --- ISOMETRIC SVG FALLBACK ---
+    function drawIsometricSVG() {
+      const svg = document.getElementById("shape");
+      if (!svg) return;
+
+      const P = state.volume.length;
+      const L = state.volume.width;
+      const T = state.volume.height;
+
+      function point(x, y, z) {
+        return [300 + (x - y) * 26, 260 + (x + y) * 14 - z * 28];
+      }
+
+      function polygon(points, fill) {
+        const coords = points.map(v => {
+          const [x, y] = point(...v);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(" ");
+        return `<polygon points="${coords}" fill="${fill}" stroke="#ffffff" stroke-width="1.2" stroke-linejoin="round" />`;
+      }
+
+      let cubes = [];
+      for (let k = 0; k < T; k++) {
+        for (let j = 0; j < L; j++) {
+          for (let i = 0; i < P; i++) {
+            cubes.push([i, j, k]);
+          }
+        }
+      }
+      cubes.sort((a, b) => (a[0] + a[1] + a[2]) - (b[0] + b[1] + b[2]));
+
+      let output = "";
+      cubes.forEach(([i, j, k]) => {
+        output += polygon([[i, j + 1, k], [i + 1, j + 1, k], [i + 1, j + 1, k + 1], [i, j + 1, k + 1]], "#4f46e5");
+        output += polygon([[i + 1, j, k], [i + 1, j + 1, k], [i + 1, j + 1, k + 1], [i + 1, j, k + 1]], "#2563eb");
+        output += polygon([[i, j, k + 1], [i + 1, j, k + 1], [i + 1, j + 1, k + 1], [i, j + 1, k + 1]], "#818cf8");
+      });
+
+      svg.innerHTML = output;
+    }
+
+    // --- CALCULATIONS & MATH UPDATES FOR VOLUME ---
+    function updateCalculations() {
+      const P = state.volume.length;
+      const L = state.volume.width;
+      const T = state.volume.height;
+
+      const pVal = document.getElementById("pVal");
+      const lVal = document.getElementById("lVal");
+      const tVal = document.getElementById("tVal");
+      if (pVal) pVal.textContent = P;
+      if (lVal) lVal.textContent = L;
+      if (tVal) tVal.textContent = T;
+
+      const area = P * L;
+      const volume = P * L * T;
+      const isCube = (P === L && L === T);
+
+      const areaEl = document.getElementById("area");
+      const volumeEl = document.getElementById("volume");
+      if (areaEl) areaEl.textContent = `${area} cm²`;
+      if (volumeEl) volumeEl.textContent = `${volume} cm³`;
+
+      const fLen = document.getElementById("formula-length-val");
+      const fWid = document.getElementById("formula-width-val");
+      const fArea = document.getElementById("formula-area-val");
+      const fHgt = document.getElementById("formula-height-val");
+
+      if (fLen) fLen.textContent = P;
+      if (fWid) fWid.textContent = L;
+      if (fArea) fArea.textContent = area;
+      if (fHgt) fHgt.textContent = T;
+
+      const areaForm = document.getElementById("areaFormula");
+      const volForm = document.getElementById("volumeFormula");
+      if (areaForm) areaForm.textContent = `${area} cm²`;
+      if (volForm) volForm.textContent = `${volume} cm³`;
+
+      const shapeBadge = document.getElementById("shape-name-badge");
+      const countBadge = document.getElementById("cube-count-badge");
+      if (shapeBadge) shapeBadge.textContent = isCube ? "Cube" : "Cuboid";
+      if (countBadge) countBadge.textContent = volume;
+
+      const expElement = document.getElementById("explanation");
+      if (expElement) {
+        expElement.innerHTML = `
+          Your solid has <b>${T} height layer${T > 1 ? 's' : ''}</b>. Each layer contains <b>${area} unit cubes</b> (${P} × ${L}). Total volume is ${area} × ${T} = <b class="text-cyan-300 font-bold">${volume} cubic units (cm³)</b>.
+        `;
+      }
+
+      if (state.volume.renderMode === '3d') update3DScene();
+      else drawIsometricSVG();
+    }
+
+    function setRenderMode(mode) {
+      state.volume.renderMode = mode;
+      const btn3d = document.getElementById('mode-3d-btn');
+      const btn2d = document.getElementById('mode-2d-btn');
+      const container3d = document.getElementById('three-container');
+      const container2d = document.getElementById('svg-container');
+
+      if (mode === '3d') {
+        if (btn3d) btn3d.className = "px-3 py-1 rounded-lg text-xs font-bold bg-white text-brand-700 shadow-sm";
+        if (btn2d) btn2d.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900";
+        if (container3d) container3d.classList.remove('hidden');
+        if (container2d) container2d.classList.add('hidden');
+        if (!isThreeInitialized) initThree();
+        update3DScene();
+      } else {
+        if (btn2d) btn2d.className = "px-3 py-1 rounded-lg text-xs font-bold bg-white text-brand-700 shadow-sm";
+        if (btn3d) btn3d.className = "px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900";
+        if (container2d) container2d.classList.remove('hidden');
+        if (container3d) container3d.classList.add('hidden');
+        drawIsometricSVG();
+      }
+    }
+
+    function resetShape() {
+      const p = document.getElementById("p");
+      const l = document.getElementById("l");
+      const t = document.getElementById("t");
+      if (p) p.value = 4;
+      if (l) l.value = 3;
+      if (t) t.value = 2;
+      state.volume.length = 4;
+      state.volume.width = 3;
+      state.volume.height = 2;
+      state.volume.solidType = 'cuboid';
+      state.volume.exploded = false;
+      state.volume.wireframe = false;
+      const expTxt = document.getElementById('explode-text');
+      if (expTxt) expTxt.textContent = "Separate Layers";
+      setSolidType('cuboid');
+    }
+
+    function toggleExplodedView() {
+      state.volume.exploded = !state.volume.exploded;
+      const expTxt = document.getElementById('explode-text');
+      if (expTxt) expTxt.textContent = state.volume.exploded ? "Merge Layers" : "Separate Layers";
+      update3DScene();
+    }
+
+    function toggleWireframe() {
+      state.volume.wireframe = !state.volume.wireframe;
+      update3DScene();
+    }
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      // Connect Volume Sliders
+      const p = document.getElementById("p");
+      const l = document.getElementById("l");
+      const t = document.getElementById("t");
+
+      [p, l, t].forEach(input => {
+        if (input) {
+          input.addEventListener("input", () => {
+            if (state.volume.solidType === 'cube') {
+              state.volume.length = state.volume.width = state.volume.height = +p.value;
+            } else {
+              state.volume.length = +p.value;
+              state.volume.width = +l.value;
+              state.volume.height = +t.value;
+            }
+            updateCalculations();
+          });
+        }
+      });
+
+      // Default module
+      switchModule('perimeter');
+    };
+  </script>
+<!-- ... existing code -->
